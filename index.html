@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Algo Visualizer</title>
+  <meta name="description"
+    content="An earthy, relaxed, and highly functional workspace to help students visualize, analyze, and remember algorithms.">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <!-- Floating Organic Background Blobs -->
+  <div class="bg-blobs">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <!-- --- LANDING PAGE WITH LOGO VIDEO SPACE --- -->
+  <div id="landing-page" class="landing-page">
+    <div class="landing-hero">
+      <div class="landing-tag">
+        <svg style="width: 14px; height: 14px; fill: currentColor;" viewBox="0 0 24 24">
+          <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5.89 12.5L12 15.82l6.11-3.32L12 9.18 5.89 12.5z" />
+        </svg>
+        Algorithm Visualizer
+      </div>
+
+      <h1 class="landing-title">Algo<span>Visualizer</span></h1>
+      <p class="landing-subtitle">
+        Algorithm Visualizations made easy
+      </p>
+
+      <!-- Video / Animated Logo Container -->
+      <div class="video-logo-container">
+        <!-- Space in code for user's animated video style logo -->
+        <video class="logo-video" autoplay loop muted playsinline>
+          <source src="remove_this_y_klogo.mp4" type="video/mp4">
+
+
+          <!-- Fallback is handled in JS/CSS if file is not found -->
+        </video>
+
+        <!-- Dynamic SVG-Animated Fallback Artwork (displayed if video is missing) -->
+        <div id="fallback-art" class="logo-animated-fallback" style="display: none;">
+          <svg class="boho-artwork-svg" viewBox="0 0 100 100">
+            <!-- Organic Concentric Rings -->
+            <circle cx="50" cy="50" r="40" fill="none" stroke="var(--sage)" stroke-width="2" opacity="0.6" />
+            <circle cx="50" cy="50" r="30" fill="none" stroke="var(--terracotta)" stroke-width="2" opacity="0.8" />
+            <circle cx="50" cy="50" r="20" fill="none" stroke="var(--mustard)" stroke-width="2" />
+
+            <!-- Organic Leaf Paths -->
+            <path d="M50 10 C55 30, 45 40, 50 50 C55 60, 45 70, 50 90" fill="none" stroke="var(--text-main)"
+              stroke-width="2" />
+            <path d="M50 30 Q65 35, 50 50 Q35 65, 50 70" fill="none" stroke="var(--mauve)" stroke-width="1.5" />
+          </svg>
+          <div class="fallback-text">Algo<span>Visualizer</span></div>
+        </div>
+      </div>
+
+      <button id="btn-start" class="btn-landing-start">
+        Enter Workspace
+        <svg style="width: 18px; height: 18px; fill: currentColor;" viewBox="0 0 24 24">
+          <path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-8.29-1.42 1.42L16.86 11H5v2z" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="landing-footer">
+      <span>🌿 Organic Design System</span>
+      <span>•</span>
+      <span>⌨️ Built for Programming Geeks</span>
+      <span>•</span>
+      <span>⚡ High Performance Mocks</span>
+    </div>
+  </div>
+
+  <!-- --- MAIN WORKSPACE INTERFACE --- -->
+  <div class="app-container">
+
+    <!-- TOP HEADER -->
+    <header class="app-header glass-panel">
+      <div class="header-left">
+        <!-- Spacer for user logo file path, falls back to text logo -->
+        <!-- Spacer for user logo file path, falls back to text logo -->
+        <div class="logo-img-wrapper">
+          <img id="logo-image" src="" alt="Logo" class="logo-img hidden">
+        </div>
+        <a id="logo-text-fallback" href="#" class="logo-text-fallback">
+          <svg class="logo-leaf-icon" viewBox="0 0 24 24">
+            <path
+              d="M17 8C8 10 5.9 16.1 5.9 16.1S12 18 17 8zM12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm1 14.9c-4-.8-6.1-3.9-6.1-3.9s4.1-1.1 6.1 3.9zm3-5c-4.4.4-6.1-2.9-6.1-2.9s4.3-.4 6.1 2.9z" />
+          </svg>
+          Algo<span>Visualizer</span>
+        </a>
+      </div>
+
+      <div class="header-center">
+        <div class="search-pill-wrapper">
+          <label for="search-input" class="sr-only">Search algorithms or enter custom numbers to visualize</label>
+          <svg class="search-icon" viewBox="0 0 24 24">
+            <path
+              d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+          </svg>
+          <input id="search-input" type="text" class="search-pill-input"
+            placeholder="Search algorithms (e.g. Dijkstra) or input custom data (e.g. 15, 42, 8)...">
+        </div>
+      </div>
+
+      <div class="header-right">
+        <!-- Code Sandbox Button -->
+        <button id="btn-sandbox-toggle" class="sandbox-toggle-btn" title="Open Code Sandbox">
+          <svg style="width: 16px; height: 16px; fill: currentColor; margin-right: 6px;" viewBox="0 0 24 24">
+            <path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/>
+          </svg>
+          Sandbox
+        </button>
+
+        <!-- Fluid Day/Night Theme Toggle -->
+        <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle theme">
+          <!-- Filled dynamically in app.js -->
+        </button>
+
+        <div class="profile-wrapper">
+          <button id="profile-btn" class="profile-icon" title="User Profile" aria-label="User Profile">
+            <svg viewBox="0 0 24 24" id="profile-svg">
+              <path
+                d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+            </svg>
+            <span id="profile-initials" class="profile-initials hidden"></span>
+          </button>
+          <div id="profile-dropdown" class="profile-dropdown hidden">
+            <div id="profile-user-info" class="profile-user-info">Signed in as <strong id="dropdown-username">Guest Scholar</strong></div>
+            <button id="btn-sign-out" class="btn-sign-out">Sign Out</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- MIDDLE WORKSPACE CONTENT -->
+    <div id="main-layout" class="main-layout">
+
+      <!-- Open Sidebar button when collapsed -->
+      <button id="open-sidebar" class="open-sidebar-btn" title="Open Library">
+        <svg style="width: 20px; height: 20px; fill: currentColor;" viewBox="0 0 24 24">
+          <path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z" />
+        </svg>
+      </button>
+
+      <!-- COLLAPSIBLE SIDEBAR: ALGORITHM LIBRARY -->
+      <aside class="sidebar glass-panel">
+        <div class="sidebar-header">
+          <h2>Library</h2>
+          <button id="close-sidebar" class="close-sidebar-btn" title="Collapse Library">
+            <svg style="width: 18px; height: 18px; fill: currentColor;" viewBox="0 0 24 24">
+              <path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Sidebar Library Progress Tracker -->
+        <div class="sidebar-progress">
+          <div class="progress-info">
+            <span class="progress-label">Library Progress</span>
+            <span id="progress-percent" class="progress-percent">0% (0/45)</span>
+          </div>
+          <div class="progress-bar-track">
+            <div id="progress-bar-fill" class="progress-bar-fill" style="width: 0%;"></div>
+          </div>
+        </div>
+
+        <nav class="sidebar-content">
+          <!-- Populated dynamically in app.js from ALGORITHMS_DB -->
+        </nav>
+      </aside>
+
+      <!-- SPLIT MAIN WORKSPACE -->
+      <main class="workspace-container">
+
+        <div class="workspace-split">
+
+          <!-- LEFT PANE: CODE EDITOR -->
+          <section class="code-editor-panel glass-panel">
+            <div class="panel-header">
+              <div class="panel-tabs">
+                <button id="tab-pseudocode" class="panel-tab active">Pseudocode</button>
+                <button id="tab-code" class="panel-tab">Code</button>
+              </div>
+              <div class="lang-selector-wrapper hidden" id="lang-selector-wrapper">
+                <select id="lang-select" class="lang-select" aria-label="Select Language">
+                  <option value="python">Python</option>
+                  <option value="cpp">C++</option>
+                  <option value="c">C</option>
+                  <option value="javascript">JavaScript</option>
+                  <option value="go">Go</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Code Lines wrapper -->
+            <div class="editor-wrapper">
+              <!-- Slidably animated highlight overlay behind active line -->
+              <div id="line-highlight" class="editor-line-highlight"></div>
+              <div id="editor-code">
+                <!-- Injected dynamically in app.js -->
+              </div>
+            </div>
+          </section>
+
+          <!-- RIGHT PANE: VISUALIZATION CANVAS -->
+          <section class="canvas-panel glass-panel">
+            <div class="panel-header">
+              <h3 id="visualizer-title" class="panel-title">Visualizer</h3>
+              <div class="panel-header-actions" style="display: flex; align-items: center; gap: 0.75rem;">
+                <button id="btn-mark-done" class="btn-mark-done" title="Mark as Done">
+                  <span class="btn-mark-done-icon">✓</span>
+                  <span class="btn-mark-done-text">Mark as Done</span>
+                </button>
+                <span id="algo-difficulty" class="editor-lang-tag"
+                  style="font-family: var(--font-sans); font-weight: 500; margin-left: 0;">Interactive Canvas</span>
+              </div>
+            </div>
+
+            <!-- Algorithm Metadata strip displaying description and complexity -->
+            <div id="algo-meta-strip" class="algo-meta-strip">
+              <div class="meta-badges">
+                <span id="complexity-badge-best" class="meta-badge best">Best: -</span>
+                <span id="complexity-badge-avg" class="meta-badge avg">Avg: -</span>
+                <span id="complexity-badge-worst" class="meta-badge worst">Worst: -</span>
+              </div>
+              <p id="algo-desc-text" class="algo-desc-text">Select an algorithm to begin.</p>
+            </div>
+
+            <div id="canvas-container" class="canvas-container">
+              <!-- Rendered dynamically in app.js -->
+            </div>
+
+            <!-- Dual Explanation & Code Meaning Windows -->
+            <div id="explanation-banner" class="explanation-dual-container">
+              <!-- Window 1: What is Happening -->
+              <div class="explanation-card happening-card">
+                <div class="card-header">
+                  <svg class="explanation-icon" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.5 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
+                  </svg>
+                  <span>What is Happening</span>
+                </div>
+                <div id="explanation-text" class="card-body">
+                  Click play or step forward to begin stepping through the algorithm execution trace.
+                </div>
+              </div>
+
+              <!-- Window 2: Literal Code Meaning (Answer Window) -->
+              <div class="explanation-card literal-card">
+                <div class="card-header">
+                  <svg class="explanation-icon" viewBox="0 0 24 24" style="fill: var(--mustard);">
+                    <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+                  </svg>
+                  <span>Literal Code Meaning</span>
+                </div>
+                <div id="literal-code-text" class="card-body">
+                  Active line syntax breakdown will appear here.
+                </div>
+              </div>
+            </div>
+          </section>
+
+        </div>
+
+        <!-- BOTTOM PANEL: COMPACT PLAYBACK CONTROLS & MEMORY TRACKER -->
+        <div class="bottom-panel">
+
+          <!-- Left side: Compact Streamlined Controls Card -->
+          <div class="controls-panel glass-panel compact-controls">
+            <div class="playback-controls">
+              <button id="btn-step-back" class="btn-control btn-compact" title="Step Backward">
+                <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" /></svg>
+                <span>Step Back</span>
+              </button>
+
+              <button id="btn-play-pause" class="btn-control btn-compact primary-btn" title="Run / Pause Algorithm">
+                <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+                <span>Run</span>
+              </button>
+
+              <button id="btn-step-forward" class="btn-control btn-compact" title="Step Forward">
+                <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" /></svg>
+                <span>Step Forward</span>
+              </button>
+            </div>
+
+            <!-- Mini speed control slider -->
+            <div class="speed-control-wrapper mini-speed">
+              <label for="speed-slider" class="speed-label" style="font-size: 0.75rem;">
+                Speed
+              </label>
+              <input id="speed-slider" class="speed-slider" type="range" min="1" max="10" value="5" title="Adjust speed">
+            </div>
+          </div>
+
+          <!-- Right side: Memory State Tracker Card -->
+          <div class="memory-tracker glass-panel">
+            <div class="memory-header">
+              <span>Memory state tracker</span>
+              <span style="color: var(--sage); font-weight: bold;">[Live Variables]</span>
+            </div>
+            <div id="memory-content" class="memory-content">
+              <!-- Populated dynamically in app.js -->
+            </div>
+          </div>
+
+        </div>
+
+      </main>
+
+    </div>
+
+  </div>
+
+  <!-- Auth Modal Overlay -->
+  <div id="auth-modal" class="auth-modal-overlay hidden">
+    <div class="auth-card glass-panel">
+      <div class="auth-card-header">
+        <h2 id="auth-title">Welcome Scholar</h2>
+        <p id="auth-subtitle">Sign in to save and track your algorithm learning progress.</p>
+      </div>
+
+      <form id="auth-form" class="auth-form">
+        <div class="form-group">
+          <label for="auth-username">Username</label>
+          <input type="text" id="auth-username" required placeholder="Enter username (e.g. Alice)" autocomplete="username">
+        </div>
+        <div class="form-group" id="password-group">
+          <label for="auth-password">Password</label>
+          <input type="password" id="auth-password" required placeholder="••••••••" autocomplete="current-password">
+        </div>
+        
+        <button type="submit" id="btn-auth-submit" class="btn-auth-submit">Sign In</button>
+      </form>
+
+      <div class="auth-actions">
+        <a href="#" id="auth-toggle-mode">Don't have an account? Sign Up</a>
+        <span class="auth-divider">•</span>
+        <a href="#" id="btn-auth-guest">Continue as Guest</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Code Sandbox Drawer Pane -->
+  <aside id="sandbox-pane" class="sandbox-pane glass-panel hidden">
+    <div class="sandbox-header">
+      <h2>Interactive Code Sandbox</h2>
+      <button id="close-sandbox" class="close-sandbox-btn" title="Close Sandbox">✕</button>
+    </div>
+    <div class="sandbox-content">
+      <p class="sandbox-desc">
+        Write custom code or pick a preset to manipulate arrays, matrices, or strings. Watch every read, compare, and swap operation traced live!
+      </p>
+
+      <!-- Structure Mode Selector -->
+      <div class="form-group" style="display: flex; flex-direction: column; gap: 0.35rem;">
+        <label style="font-size: 0.85rem; font-weight: 600;">Data Structure Type</label>
+        <div id="sandbox-struct-selector" style="display: flex; gap: 6px;">
+          <button type="button" class="struct-type-btn active" data-type="array" style="flex: 1; padding: 6px 10px; font-size: 0.8rem; font-weight: 600; border-radius: 6px; border: 1px solid var(--border-color); background-color: var(--sage); color: #fff; cursor: pointer;">Array / Sort</button>
+          <button type="button" class="struct-type-btn" data-type="grid" style="flex: 1; padding: 6px 10px; font-size: 0.8rem; font-weight: 600; border-radius: 6px; border: 1px solid var(--border-color); background-color: var(--bg-base); color: var(--text-muted); cursor: pointer;">Grid / Matrix</button>
+          <button type="button" class="struct-type-btn" data-type="string" style="flex: 1; padding: 6px 10px; font-size: 0.8rem; font-weight: 600; border-radius: 6px; border: 1px solid var(--border-color); background-color: var(--bg-base); color: var(--text-muted); cursor: pointer;">String</button>
+        </div>
+      </div>
+
+      <div class="form-group" style="display: flex; flex-direction: column; gap: 0.35rem; margin-top: 0.5rem;">
+        <label for="sandbox-array-input" id="sandbox-input-label" style="font-size: 0.85rem; font-weight: 600;">Initial Data</label>
+        <input type="text" id="sandbox-array-input" value="25, 45, 12, 35, 18" placeholder="e.g. 25, 45, 12, 35, 18" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; background-color: var(--bg-base); color: var(--text-main); font-family: var(--font-mono); font-size: 0.9rem;">
+      </div>
+
+      <div class="form-group" style="display: flex; flex-direction: column; gap: 0.35rem; margin-top: 0.5rem;">
+        <label for="sandbox-lang-select" style="font-size: 0.85rem; font-weight: 600;">Language & Code Template</label>
+        <select id="sandbox-lang-select" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; background-color: var(--bg-base); color: var(--text-main); font-family: var(--font-sans); font-size: 0.9rem;">
+          <option value="javascript">JavaScript</option>
+          <option value="python">Python</option>
+          <option value="cpp">C++</option>
+          <option value="c">C</option>
+          <option value="go">Go</option>
+        </select>
+      </div>
+
+      <div class="form-group" style="display: flex; flex-direction: column; gap: 0.35rem; margin-top: 0.5rem;">
+        <label for="sandbox-code-input" id="sandbox-code-label" style="font-size: 0.85rem; font-weight: 600;">Code Editor</label>
+        <textarea id="sandbox-code-input" spellcheck="false" class="code-textarea" style="width: 100%; height: 210px; font-family: var(--font-mono); font-size: 0.85rem; background-color: var(--bg-base); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.75rem; resize: vertical; line-height: 1.5;">// Bubble Sort Example
+for (let i = 0; i < arr.length; i++) {
+  for (let j = 0; j < arr.length - i - 1; j++) {
+    if (arr[j] > arr[j + 1]) {
+      // Swap arr[j] and arr[j + 1]
+      let temp = arr[j];
+      arr[j] = arr[j + 1];
+      arr[j + 1] = temp;
+    }
+  }
+}</textarea>
+      </div>
+
+      <!-- Operations Color Legend -->
+      <div style="display: flex; gap: 12px; margin-top: 0.5rem; padding: 8px 12px; background-color: var(--bg-base); border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.75rem; font-family: var(--font-mono);">
+        <div style="display: flex; align-items: center; gap: 4px;"><span style="width: 10px; height: 10px; background: #06b6d4; border-radius: 50%;"></span> Read</div>
+        <div style="display: flex; align-items: center; gap: 4px;"><span style="width: 10px; height: 10px; background: #ea580c; border-radius: 50%;"></span> Write / Swap</div>
+        <div style="display: flex; align-items: center; gap: 4px;"><span style="width: 10px; height: 10px; background: #10b981; border-radius: 50%;"></span> Sorted</div>
+      </div>
+
+      <button id="btn-sandbox-run" class="btn-sandbox-run" style="margin-top: 0.75rem; width: 100%;">Run & Visualize</button>
+    </div>
+  </aside>
+
+  <!-- Include data and logic code files -->
+  <script src="algorithms_db.js"></script>
+  <script src="algorithms.js"></script>
+  <script src="app.js"></script>
+</body>
+
+</html>
