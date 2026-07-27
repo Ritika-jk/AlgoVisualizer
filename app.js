@@ -786,12 +786,21 @@ The design pulses gently, evoking structural trees and algorithmic graphs in a r
 
       const currentStepsList = getSteps();
       const currentStep = currentStepsList[stepIndex];
-      let arrString = currentStep.memory ? (currentStep.memory.arr || "[]") : "[]";
+      let arrString = currentStep.memory ? (currentStep.memory.arr || null) : null;
       let arr = [];
-      try {
-        arr = JSON.parse(arrString.replace(/'/g, '"'));
-      } catch (e) {
-        arr = [10, 20, 30, 40, 50];
+      if (arrString) {
+        try {
+          arr = JSON.parse(arrString.replace(/'/g, '"'));
+        } catch (e) {
+          arr = [];
+        }
+      }
+      if (!arr || !Array.isArray(arr) || arr.length === 0) {
+        if (dbAlgo && dbAlgo.mockVisualState && Array.isArray(dbAlgo.mockVisualState.initialData)) {
+          arr = [...dbAlgo.mockVisualState.initialData];
+        } else {
+          arr = [25, 45, 12, 35, 18];
+        }
       }
 
       const maxVal = Math.max(...arr, 50);
@@ -1915,118 +1924,229 @@ The design pulses gently, evoking structural trees and algorithmic graphs in a r
     return trace;
   };
 
+  const getLineDetailExplanation = (lineText, memory) => {
+    if (!lineText) return "";
+    if (lineText.includes("for ") || lineText.includes("while ")) return "Looping through elements and updating pointers.";
+    if (lineText.includes("if ") || lineText.includes("elif ")) return "Testing condition for active state.";
+    if (lineText.includes("swap") || lineText.includes("partition")) return "Swapping elements to reorder values.";
+    if (lineText.includes("return")) return "Finalizing output and completing step.";
+    return "Updating state memory.";
+  };
+
   const runGenericMockSimulation = (algoMeta, data) => {
     let trace = [];
-    const pseudocode = algoMeta.pseudocode;
-    const trackerVars = algoMeta.mockVisualState.trackedVariables || [];
-    const type = algoMeta.mockVisualState.type;
+    const pseudocode = algoMeta.pseudocode || [];
+    const trackerVars = (algoMeta.mockVisualState && algoMeta.mockVisualState.trackedVariables) || [];
+    const type = (algoMeta.mockVisualState && algoMeta.mockVisualState.type) || "array";
+
+    let initialArr = [];
+    if (type === "array") {
+      if (Array.isArray(data)) initialArr = [...data];
+      else if (data && Array.isArray(data.initialData)) initialArr = [...data.initialData];
+      else initialArr = [34, 12, 58, 9, 23, 77, 45];
+    }
+
+    let initialGraphNodes = ["A", "B", "C", "D", "E"];
+    let initialTreeNodes = ["20", "10", "30", "5", "15"];
+    let initialGrid = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
+    let initialString = typeof data === "string" ? data : (data && data.text ? data.text : "ALGORITHM");
+
+    // Line 0: Entry
+    let startMem = { status: "Started" };
+    if (type === "array") startMem.arr = JSON.stringify(initialArr);
+    else if (type === "graph") startMem.nodes = JSON.stringify(initialGraphNodes);
+    else if (type === "tree") startMem.root = initialTreeNodes[0];
+    else if (type === "string") startMem.text = initialString;
+    else if (type === "grid") startMem.grid = "4x4 Matrix";
 
     trace.push({
       line: 0,
-      memory: Object.assign({ status: "Entered" }, typeof data === 'object' ? data : { input: JSON.stringify(data) }),
-      explanation: `Entering the ${algoMeta.name} workspace visualization.`,
-      visuals: getGenericVisuals(type, data, 0)
+      memory: startMem,
+      explanation: `Entering ${algoMeta.name} workspace visualization. Preparing dataset.`,
+      visuals: getGenericVisuals(type, data, 0, initialArr, initialGraphNodes, initialTreeNodes, initialGrid, initialString)
     });
 
-    let memSetup = { status: "Setup" };
+    // Line 1: Workspace setup
+    let initMem = { status: "Initializing" };
+    if (type === "array") initMem.arr = JSON.stringify(initialArr);
     trackerVars.forEach(v => {
-      memSetup[v] = "-";
+      initMem[v] = "-";
     });
+
     trace.push({
-      line: Math.min(1, pseudocode.length - 1),
-      memory: Object.assign(memSetup, typeof data === 'object' ? data : { input: JSON.stringify(data) }),
-      explanation: `Initialize workspace tracker variables: ${trackerVars.join(", ")}.`,
-      visuals: getGenericVisuals(type, data, 1)
+      line: Math.min(1, Math.max(0, pseudocode.length - 1)),
+      memory: initMem,
+      explanation: `Initializing tracking variables (${trackerVars.join(", ")}).`,
+      visuals: getGenericVisuals(type, data, 1, initialArr, initialGraphNodes, initialTreeNodes, initialGrid, initialString)
     });
 
-    const executionLines = Array.from({ length: pseudocode.length - 2 }, (v, k) => k + 2);
-    let stepCount = Math.min(6, executionLines.length || 4);
+    // Build line sequence through pseudocode
+    let currentArr = [...initialArr];
+    let visitedGraph = [];
+    let visitedTree = [];
+    let processedChars = [];
+    let lineSequence = [];
 
-    for (let s = 0; s < stepCount; s++) {
-      let lineNum = executionLines[s % executionLines.length] || 1;
+    for (let l = (pseudocode.length > 2 ? 1 : 0); l < pseudocode.length - 1; l++) {
+      let lineItem = pseudocode[l];
+      let lineText = typeof lineItem === "string" ? lineItem : (lineItem ? lineItem.text : "");
+      let trimmed = lineText.trim();
 
-      let stepMem = { status: `Running (Step ${s + 1})` };
-      trackerVars.forEach((v, vIdx) => {
-        if (v === "i" || v === "j" || v === "index" || v === "step" || v === "r" || v === "c") {
-          stepMem[v] = s;
-        } else if (v.includes("array") || v.includes("matrix") || v.includes("dp")) {
-          stepMem[v] = `[${s} calculations done]`;
-        } else {
-          stepMem[v] = `value_${s}`;
+      if (/^(for|while|repeat|loop)/i.test(trimmed)) {
+        for (let iter = 0; iter < 3; iter++) {
+          lineSequence.push({ lineIdx: l, iter: iter });
+          if (l + 1 < pseudocode.length - 1) {
+            lineSequence.push({ lineIdx: l + 1, iter: iter });
+          }
         }
-      });
-
-      trace.push({
-        line: lineNum,
-        memory: stepMem,
-        explanation: `Executing line ${lineNum + 1}: ${pseudocode[lineNum].trim()}`,
-        visuals: getGenericVisuals(type, data, s + 2)
-      });
+        l++;
+      } else {
+        lineSequence.push({ lineIdx: l, iter: 0 });
+      }
     }
 
-    let finalMem = { status: "Success", result: "Completed" };
-    trackerVars.forEach(v => {
-      finalMem[v] = "Done";
+    if (lineSequence.length < 5) {
+      lineSequence = [...lineSequence, ...lineSequence];
+    }
+    if (lineSequence.length > 25) {
+      lineSequence = lineSequence.slice(0, 25);
+    }
+
+    lineSequence.forEach((seqItem, stepIdx) => {
+      let lineIdx = seqItem.lineIdx;
+      let lineItem = pseudocode[lineIdx];
+      let lineText = typeof lineItem === "string" ? lineItem : (lineItem ? lineItem.text : "");
+      let trimmed = lineText.replace(/\u00A0/g, " ").trim();
+
+      let stepMem = { status: `Running Step ${stepIdx + 1}` };
+
+      if (type === "array" && currentArr.length > 0) {
+        let activeIdx = stepIdx % currentArr.length;
+        let compareIdx = (stepIdx + 1) % currentArr.length;
+
+        if (/swap|pivot|insert|sort|heapify|partition/i.test(trimmed) && currentArr[activeIdx] > currentArr[compareIdx]) {
+          let temp = currentArr[activeIdx];
+          currentArr[activeIdx] = currentArr[compareIdx];
+          currentArr[compareIdx] = temp;
+        }
+
+        stepMem.arr = JSON.stringify(currentArr);
+
+        trackerVars.forEach(v => {
+          if (v === "i" || v === "left" || v === "low") stepMem[v] = activeIdx;
+          else if (v === "j" || v === "right" || v === "high" || v === "min_idx") stepMem[v] = compareIdx;
+          else if (v === "mid" || v === "pivot" || v === "pivot_idx") stepMem[v] = Math.floor((activeIdx + compareIdx) / 2);
+          else if (v === "key" || v === "target") stepMem[v] = currentArr[activeIdx];
+          else stepMem[v] = `val_${stepIdx + 1}`;
+        });
+      } else if (type === "graph") {
+        let nodeIdx = stepIdx % initialGraphNodes.length;
+        let currentNode = initialGraphNodes[nodeIdx];
+        if (!visitedGraph.includes(currentNode)) visitedGraph.push(currentNode);
+
+        trackerVars.forEach(v => {
+          if (v === "u" || v === "node" || v === "curr") stepMem[v] = currentNode;
+          else if (v === "v" || v === "neighbor") stepMem[v] = initialGraphNodes[(nodeIdx + 1) % initialGraphNodes.length];
+          else if (v === "dist" || v === "visited") stepMem[v] = `[${visitedGraph.join(", ")}]`;
+          else stepMem[v] = `val_${stepIdx + 1}`;
+        });
+      } else if (type === "tree") {
+        let nodeIdx = stepIdx % initialTreeNodes.length;
+        let currentNode = initialTreeNodes[nodeIdx];
+        if (!visitedTree.includes(currentNode)) visitedTree.push(currentNode);
+
+        trackerVars.forEach(v => {
+          if (v === "node" || v === "curr" || v === "root") stepMem[v] = currentNode;
+          else if (v === "val" || v === "key") stepMem[v] = currentNode;
+          else if (v === "balance") stepMem[v] = (stepIdx % 3) - 1;
+          else stepMem[v] = `val_${stepIdx + 1}`;
+        });
+      } else if (type === "string") {
+        let charIdx = stepIdx % initialString.length;
+        if (!processedChars.includes(charIdx)) processedChars.push(charIdx);
+
+        trackerVars.forEach(v => {
+          if (v === "i" || v === "index") stepMem[v] = charIdx;
+          else if (v === "char") stepMem[v] = `'${initialString[charIdx]}'`;
+          else stepMem[v] = `val_${stepIdx + 1}`;
+        });
+      } else if (type === "grid") {
+        let row = Math.floor(stepIdx / 4) % 4;
+        let col = stepIdx % 4;
+        initialGrid[row][col] = (stepIdx + 1) * 5;
+
+        trackerVars.forEach(v => {
+          if (v === "r" || v === "i" || v === "row") stepMem[v] = row;
+          else if (v === "c" || v === "j" || v === "col") stepMem[v] = col;
+          else if (v === "val" || v.includes("dp")) stepMem[v] = initialGrid[row][col];
+          else stepMem[v] = `val_${stepIdx + 1}`;
+        });
+      } else {
+        trackerVars.forEach((v, idx) => {
+          stepMem[v] = (stepIdx + 1) * (idx + 1) * 7;
+        });
+      }
+
+      trace.push({
+        line: lineIdx,
+        memory: stepMem,
+        explanation: `Line ${lineIdx + 1}: ${trimmed}. ${getLineDetailExplanation(trimmed, stepMem)}`,
+        visuals: getGenericVisuals(type, data, stepIdx + 1, currentArr, initialGraphNodes, initialTreeNodes, initialGrid, initialString, visitedGraph, visitedTree, processedChars)
+      });
     });
+
+    let endMem = { status: "Completed", result: "Success" };
+    if (type === "array") endMem.arr = JSON.stringify(currentArr);
+    trackerVars.forEach(v => {
+      endMem[v] = "Done";
+    });
+
     trace.push({
-      line: pseudocode.length - 1,
-      memory: finalMem,
-      explanation: `Algorithm completed execution. Returning results.`,
-      visuals: getGenericVisuals(type, data, 99)
+      line: Math.max(0, pseudocode.length - 1),
+      memory: endMem,
+      explanation: `${algoMeta.name} execution completed successfully! All steps finalized.`,
+      visuals: getGenericVisuals(type, data, 99, currentArr, initialGraphNodes, initialTreeNodes, initialGrid, initialString, initialGraphNodes, initialTreeNodes, Array.from({ length: initialString.length }, (_, i) => i))
     });
 
     return trace;
   };
 
-  const getGenericVisuals = (type, data, step) => {
+  const getGenericVisuals = (type, data, step, currentArr = [], graphNodes = ["A", "B", "C", "D", "E"], treeNodes = ["20", "10", "30", "5", "15"], grid = [], strText = "ALGORITHM", visitedGraph = [], visitedTree = [], processedChars = []) => {
     if (type === "array") {
-      let arr = Array.isArray(data) ? data : (data.initialData || [10, 20, 30, 40, 50]);
-      return { active: [step % arr.length], compared: [], sorted: [] };
-    } else if (type === "grid") {
-      let grid = Array.isArray(data) ? data : (data.initialData || [[1, 0, 0], [0, 1, 0], [0, 0, 1]]);
-      let matrix = Array.isArray(grid) ? grid : [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
-      let rows = matrix.length;
-      let cols = matrix[0] ? matrix[0].length : 0;
-
-      let simulatedGrid = matrix.map((row, r) =>
-        row.map((val, c) => {
-          if (r * cols + c < step) {
-            return typeof val === 'number' ? (val + r + c + step) % 100 : val;
-          }
-          return null;
-        })
-      );
-
-      let activeRow = Math.floor(step / cols) % rows;
-      let activeCol = step % cols;
-      return { type: "grid", grid: simulatedGrid, active: [activeRow, activeCol] };
-    } else if (type === "string") {
-      let text = typeof data === 'string' ? data : (data.text || "WORKSPACE");
-      let active = step % text.length;
-      let processed = Array.from({ length: Math.min(step, text.length) }, (v, k) => k);
-      return { type: "string", text: text, active: active, processed: processed };
-    } else if (type === "tree") {
-      let activeNode = "10";
-      if (step === 0) activeNode = "20";
-      else if (step === 1) activeNode = "10";
-      else if (step === 2) activeNode = "5";
+      let arr = currentArr.length > 0 ? currentArr : (Array.isArray(data) ? data : (data && data.initialData ? data.initialData : [34, 12, 58, 9, 23, 77, 45]));
+      let activeIdx = step % arr.length;
+      let compareIdx = (step + 1) % arr.length;
+      let sortedIndices = step >= 99 ? Array.from({ length: arr.length }, (_, i) => i) : Array.from({ length: Math.min(step, arr.length) }, (_, i) => arr.length - 1 - i);
 
       return {
-        active: activeNode,
-        visited: ["20", "10"].slice(0, step),
-        queued: []
+        active: [activeIdx],
+        compared: [compareIdx],
+        sorted: sortedIndices
       };
     } else if (type === "graph") {
-      let activeNode = "A";
-      if (step === 0) activeNode = "A";
-      else if (step === 1) activeNode = "B";
-      else if (step === 2) activeNode = "C";
-
+      let activeNode = graphNodes[step % graphNodes.length];
       return {
         active: [activeNode],
-        visited: ["A", "B", "C"].slice(0, step),
+        visited: visitedGraph.length > 0 ? visitedGraph : graphNodes.slice(0, Math.min(step, graphNodes.length)),
         queued: []
       };
+    } else if (type === "tree") {
+      let activeNode = treeNodes[step % treeNodes.length];
+      return {
+        active: activeNode,
+        visited: visitedTree.length > 0 ? visitedTree : treeNodes.slice(0, Math.min(step, treeNodes.length)),
+        queued: []
+      };
+    } else if (type === "grid") {
+      let matrix = grid.length > 0 ? grid : [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]];
+      let activeRow = Math.floor(step / 4) % 4;
+      let activeCol = step % 4;
+      return { type: "grid", grid: matrix, active: [activeRow, activeCol] };
+    } else if (type === "string") {
+      let active = step % strText.length;
+      return { type: "string", text: strText, active: active, processed: processedChars };
+    } else if (type === "math" || type === "fib") {
+      return { type: "math" };
     }
     return {};
   };
