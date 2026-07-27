@@ -1279,6 +1279,28 @@ The design pulses gently, evoking structural trees and algorithmic graphs in a r
     } else if (algoId === "bubble-sort" || targetStaticId === "bubble_sort") {
       let arr = Array.isArray(data) ? [...data] : [29, 10, 14, 37, 13];
       return runBubbleSortSimulation(arr);
+    } else if (algoId === "quick-sort") {
+      let arr = Array.isArray(data) ? [...data] : [38, 14, 52, 9, 23, 77, 45, 19];
+      return runQuickSortSimulation(arr);
+    } else if (algoId === "merge-sort") {
+      let arr = Array.isArray(data) ? [...data] : [38, 27, 43, 3, 9, 82, 10];
+      return runMergeSortSimulation(arr);
+    } else if (algoId === "heap-sort") {
+      let arr = Array.isArray(data) ? [...data] : [4, 10, 3, 5, 1, 8, 7];
+      return runHeapSortSimulation(arr);
+    } else if (algoId === "01-knapsack") {
+      let w = (data && data.weights) ? data.weights : [1, 2, 3];
+      let v = (data && data.values) ? data.values : [6, 10, 12];
+      let cap = (data && data.W) ? data.W : 5;
+      return runKnapsackSimulation(w, v, cap);
+    } else if (algoId === "longest-common-subsequence") {
+      let s1 = (data && data.str1) ? data.str1 : "ABCDGH";
+      let s2 = (data && data.str2) ? data.str2 : "AEDFHR";
+      return runLCSSimulation(s1, s2);
+    } else if (algoId === "coin-change") {
+      let coins = (data && data.coins) ? data.coins : [1, 2, 5];
+      let amt = (data && data.amount) ? data.amount : 11;
+      return runCoinChangeSimulation(coins, amt);
     } else if (algoId === "two-pointers-target-sum") {
       let arr = Array.isArray(data) ? [...data].sort((a, b) => a - b) : [1, 2, 4, 6, 8, 9, 14, 15];
       return runTwoPointersSimulation(arr, 15);
@@ -1599,6 +1621,377 @@ The design pulses gently, evoking structural trees and algorithmic graphs in a r
       memory: { arr: JSON.stringify(arr), result: JSON.stringify(arr) },
       explanation: "Insertion Sort completed! Returning fully sorted array.",
       visuals: { active: [], compared: [], sorted: Array.from({ length: n }, (v, k) => k) }
+    });
+
+    return trace;
+  };
+
+  const runQuickSortSimulation = (arrInput) => {
+    let arr = [...arrInput];
+    let trace = [];
+    let n = arr.length;
+    let sortedIndices = [];
+
+    trace.push({
+      line: 0,
+      memory: { arr: JSON.stringify(arr), low: 0, high: n - 1 },
+      explanation: "Entering quick_sort function.",
+      visuals: { active: [], compared: [], sorted: [] }
+    });
+
+    const partition = (low, high) => {
+      let pivot = arr[high];
+      let i = low - 1;
+
+      trace.push({
+        line: 1,
+        memory: { arr: JSON.stringify(arr), low: low, high: high, pivot: pivot },
+        explanation: `Selecting pivot = arr[high] (${pivot}) at index ${high}.`,
+        visuals: { active: [high], compared: [], sorted: [...sortedIndices], pivot: high }
+      });
+
+      for (let j = low; j < high; j++) {
+        trace.push({
+          line: 2,
+          memory: { arr: JSON.stringify(arr), pivot: pivot, i: i, j: j },
+          explanation: `Compare arr[${j}] (${arr[j]}) with pivot (${pivot}).`,
+          visuals: { active: [j], compared: [high], sorted: [...sortedIndices], pivot: high }
+        });
+
+        if (arr[j] < pivot) {
+          i++;
+          let temp = arr[i];
+          arr[i] = arr[j];
+          arr[j] = temp;
+          trace.push({
+            line: 3,
+            memory: { arr: JSON.stringify(arr), pivot: pivot, i: i, j: j },
+            explanation: `arr[${j}] < pivot. Swap arr[${i}] and arr[${j}].`,
+            visuals: { active: [i, j], compared: [], sorted: [...sortedIndices], pivot: high }
+          });
+        }
+      }
+
+      let temp = arr[i + 1];
+      arr[i + 1] = arr[high];
+      arr[high] = temp;
+      let pivotIdx = i + 1;
+      if (!sortedIndices.includes(pivotIdx)) sortedIndices.push(pivotIdx);
+
+      trace.push({
+        line: 4,
+        memory: { arr: JSON.stringify(arr), pivot_idx: pivotIdx },
+        explanation: `Place pivot ${pivot} in its final position at index ${pivotIdx}.`,
+        visuals: { active: [pivotIdx], compared: [], sorted: [...sortedIndices] }
+      });
+
+      return pivotIdx;
+    };
+
+    const quickSortHelper = (low, high) => {
+      if (low < high) {
+        let p = partition(low, high);
+        quickSortHelper(low, p - 1);
+        quickSortHelper(p + 1, high);
+      } else if (low >= 0 && low < n && !sortedIndices.includes(low)) {
+        sortedIndices.push(low);
+      }
+    };
+
+    quickSortHelper(0, n - 1);
+
+    trace.push({
+      line: 4,
+      memory: { arr: JSON.stringify(arr), result: JSON.stringify(arr) },
+      explanation: "Quick Sort completed! Array is fully sorted.",
+      visuals: { active: [], compared: [], sorted: Array.from({ length: n }, (_, k) => k) }
+    });
+
+    return trace;
+  };
+
+  const runMergeSortSimulation = (arrInput) => {
+    let arr = [...arrInput];
+    let trace = [];
+    let n = arr.length;
+
+    trace.push({
+      line: 0,
+      memory: { arr: JSON.stringify(arr) },
+      explanation: "Entering merge_sort function.",
+      visuals: { active: [], compared: [], sorted: [] }
+    });
+
+    const merge = (l, m, r) => {
+      let leftArr = arr.slice(l, m + 1);
+      let rightArr = arr.slice(m + 1, r + 1);
+      let i = 0, j = 0, k = l;
+
+      trace.push({
+        line: 4,
+        memory: { arr: JSON.stringify(arr), left: l, mid: m, right: r },
+        explanation: `Merging sub-arrays [${leftArr.join(", ")}] and [${rightArr.join(", ")}].`,
+        visuals: { active: Array.from({ length: r - l + 1 }, (_, idx) => l + idx), compared: [], sorted: [] }
+      });
+
+      while (i < leftArr.length && j < rightArr.length) {
+        if (leftArr[i] <= rightArr[j]) {
+          arr[k] = leftArr[i];
+          i++;
+        } else {
+          arr[k] = rightArr[j];
+          j++;
+        }
+        trace.push({
+          line: 5,
+          memory: { arr: JSON.stringify(arr), k: k, val: arr[k] },
+          explanation: `Placed value ${arr[k]} into position ${k}.`,
+          visuals: { active: [k], compared: [], sorted: [] }
+        });
+        k++;
+      }
+
+      while (i < leftArr.length) {
+        arr[k] = leftArr[i];
+        i++; k++;
+      }
+      while (j < rightArr.length) {
+        arr[k] = rightArr[j];
+        j++; k++;
+      }
+    };
+
+    const mergeSortHelper = (l, r) => {
+      if (l < r) {
+        let m = Math.floor((l + r) / 2);
+        mergeSortHelper(l, m);
+        mergeSortHelper(m + 1, r);
+        merge(l, m, r);
+      }
+    };
+
+    mergeSortHelper(0, n - 1);
+
+    trace.push({
+      line: 6,
+      memory: { arr: JSON.stringify(arr), result: JSON.stringify(arr) },
+      explanation: "Merge Sort completed! Array is fully sorted.",
+      visuals: { active: [], compared: [], sorted: Array.from({ length: n }, (_, idx) => idx) }
+    });
+
+    return trace;
+  };
+
+  const runHeapSortSimulation = (arrInput) => {
+    let arr = [...arrInput];
+    let trace = [];
+    let n = arr.length;
+    let sortedIndices = [];
+
+    trace.push({
+      line: 0,
+      memory: { arr: JSON.stringify(arr) },
+      explanation: "Entering heap_sort function. Building max heap.",
+      visuals: { active: [], compared: [], sorted: [] }
+    });
+
+    const heapify = (size, i) => {
+      let largest = i;
+      let left = 2 * i + 1;
+      let right = 2 * i + 2;
+
+      if (left < size && arr[left] > arr[largest]) largest = left;
+      if (right < size && arr[right] > arr[largest]) largest = right;
+
+      if (largest !== i) {
+        let temp = arr[i];
+        arr[i] = arr[largest];
+        arr[largest] = temp;
+        trace.push({
+          line: 5,
+          memory: { arr: JSON.stringify(arr), root: i, largest: largest },
+          explanation: `Heapify swap: arr[${i}] and arr[${largest}].`,
+          visuals: { active: [i, largest], compared: [], sorted: [...sortedIndices] }
+        });
+        heapify(size, largest);
+      }
+    };
+
+    for (let i = Math.floor(n / 2) - 1; i >= 0; i--) {
+      heapify(n, i);
+    }
+
+    for (let i = n - 1; i > 0; i--) {
+      let temp = arr[0];
+      arr[0] = arr[i];
+      arr[i] = temp;
+      sortedIndices.push(i);
+
+      trace.push({
+        line: 4,
+        memory: { arr: JSON.stringify(arr), extracted_max: temp, heap_size: i },
+        explanation: `Extracted max element ${temp} to index ${i}. Re-heapifying root.`,
+        visuals: { active: [0, i], compared: [], sorted: [...sortedIndices] }
+      });
+
+      heapify(i, 0);
+    }
+    sortedIndices.push(0);
+
+    trace.push({
+      line: 5,
+      memory: { arr: JSON.stringify(arr), result: JSON.stringify(arr) },
+      explanation: "Heap Sort completed! Array is fully sorted.",
+      visuals: { active: [], compared: [], sorted: Array.from({ length: n }, (_, k) => k) }
+    });
+
+    return trace;
+  };
+
+  const runKnapsackSimulation = (weights = [1, 2, 3], values = [6, 10, 12], W = 5) => {
+    let trace = [];
+    let n = values.length;
+    let dp = Array.from({ length: n + 1 }, () => Array(W + 1).fill(0));
+
+    trace.push({
+      line: 0,
+      memory: { weights: JSON.stringify(weights), values: JSON.stringify(values), W: W },
+      explanation: `Entering 0/1 Knapsack with ${n} items and capacity ${W}.`,
+      visuals: { type: "grid", grid: dp.map(row => [...row]), active: [0, 0] }
+    });
+
+    for (let i = 1; i <= n; i++) {
+      for (let w = 1; w <= W; w++) {
+        trace.push({
+          line: 3,
+          memory: { i: i, w: w, item_weight: weights[i - 1], item_value: values[i - 1] },
+          explanation: `Evaluating item ${i} (weight: ${weights[i - 1]}, value: ${values[i - 1]}) at capacity w = ${w}.`,
+          visuals: { type: "grid", grid: dp.map(row => [...row]), active: [i, w] }
+        });
+
+        if (weights[i - 1] <= w) {
+          dp[i][w] = Math.max(values[i - 1] + dp[i - 1][w - weights[i - 1]], dp[i - 1][w]);
+          trace.push({
+            line: 6,
+            memory: { i: i, w: w, "dp[i][w]": dp[i][w] },
+            explanation: `Item fits! Max value at dp[${i}][${w}] = ${dp[i][w]}.`,
+            visuals: { type: "grid", grid: dp.map(row => [...row]), active: [i, w] }
+          });
+        } else {
+          dp[i][w] = dp[i - 1][w];
+          trace.push({
+            line: 8,
+            memory: { i: i, w: w, "dp[i][w]": dp[i][w] },
+            explanation: `Item too heavy for capacity ${w}. Carry over dp[${i - 1}][${w}] = ${dp[i][w]}.`,
+            visuals: { type: "grid", grid: dp.map(row => [...row]), active: [i, w] }
+          });
+        }
+      }
+    }
+
+    trace.push({
+      line: 9,
+      memory: { max_value: dp[n][W] },
+      explanation: `0/1 Knapsack completed! Maximum value achievable is ${dp[n][W]}.`,
+      visuals: { type: "grid", grid: dp.map(row => [...row]), active: [n, W] }
+    });
+
+    return trace;
+  };
+
+  const runLCSSimulation = (str1 = "ABCDGH", str2 = "AEDFHR") => {
+    let trace = [];
+    let m = str1.length;
+    let n = str2.length;
+    let dp = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
+
+    trace.push({
+      line: 0,
+      memory: { str1: str1, str2: str2 },
+      explanation: `Entering LCS comparing "${str1}" and "${str2}".`,
+      visuals: { type: "grid", grid: dp.map(row => [...row]), active: [0, 0] }
+    });
+
+    for (let i = 1; i <= m; i++) {
+      for (let j = 1; j <= n; j++) {
+        trace.push({
+          line: 5,
+          memory: { i: i, j: j, char1: str1[i - 1], char2: str2[j - 1] },
+          explanation: `Compare str1[${i - 1}] ('${str1[i - 1]}') and str2[${j - 1}] ('${str2[j - 1]}').`,
+          visuals: { type: "grid", grid: dp.map(row => [...row]), active: [i, j] }
+        });
+
+        if (str1[i - 1] === str2[j - 1]) {
+          dp[i][j] = 1 + dp[i - 1][j - 1];
+          trace.push({
+            line: 7,
+            memory: { i: i, j: j, "dp[i][j]": dp[i][j] },
+            explanation: `Match! '${str1[i - 1]}' == '${str2[j - 1]}'. Increment LCS length to ${dp[i][j]}.`,
+            visuals: { type: "grid", grid: dp.map(row => [...row]), active: [i, j] }
+          });
+        } else {
+          dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+          trace.push({
+            line: 9,
+            memory: { i: i, j: j, "dp[i][j]": dp[i][j] },
+            explanation: `No match. Take max of top cell and left cell: ${dp[i][j]}.`,
+            visuals: { type: "grid", grid: dp.map(row => [...row]), active: [i, j] }
+          });
+        }
+      }
+    }
+
+    trace.push({
+      line: 10,
+      memory: { lcs_length: dp[m][n] },
+      explanation: `LCS completed! Length of longest common subsequence is ${dp[m][n]}.`,
+      visuals: { type: "grid", grid: dp.map(row => [...row]), active: [m, n] }
+    });
+
+    return trace;
+  };
+
+  const runCoinChangeSimulation = (coins = [1, 2, 5], amount = 11) => {
+    let trace = [];
+    let dp = Array(amount + 1).fill(999);
+    dp[0] = 0;
+
+    trace.push({
+      line: 0,
+      memory: { coins: JSON.stringify(coins), amount: amount, arr: JSON.stringify(dp.map(v => v === 999 ? "∞" : v)) },
+      explanation: `Entering coin_change algorithm for target amount ${amount}.`,
+      visuals: { active: [0], compared: [], sorted: [] }
+    });
+
+    for (let i = 1; i <= amount; i++) {
+      for (let coin of coins) {
+        trace.push({
+          line: 3,
+          memory: { i: i, coin: coin, arr: JSON.stringify(dp.map(v => v === 999 ? "∞" : v)) },
+          explanation: `Checking coin ${coin} for sub-target amount ${i}.`,
+          visuals: { active: [i], compared: [], sorted: Array.from({ length: i }, (_, k) => k) }
+        });
+
+        if (coin <= i) {
+          if (dp[i - coin] !== 999) {
+            dp[i] = Math.min(dp[i], dp[i - coin] + 1);
+            trace.push({
+              line: 5,
+              memory: { i: i, coin: coin, "dp[i]": dp[i], arr: JSON.stringify(dp.map(v => v === 999 ? "∞" : v)) },
+              explanation: `dp[${i}] updated to min coins: ${dp[i]}.`,
+              visuals: { active: [i], compared: [], sorted: Array.from({ length: i }, (_, k) => k) }
+            });
+          }
+        }
+      }
+    }
+
+    let result = dp[amount] === 999 ? -1 : dp[amount];
+    trace.push({
+      line: 6,
+      memory: { amount: amount, min_coins: result, arr: JSON.stringify(dp.map(v => v === 999 ? "∞" : v)) },
+      explanation: `Coin Change completed! Minimum coins needed for amount ${amount} is ${result}.`,
+      visuals: { active: [], compared: [], sorted: Array.from({ length: amount + 1 }, (_, k) => k) }
     });
 
     return trace;
