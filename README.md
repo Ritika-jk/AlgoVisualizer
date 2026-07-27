@@ -54,7 +54,3 @@ Learning algorithms from text descriptions or static diagrams can often feel dry
 
 Since this project is crafted with pure **HTML5, Vanilla CSS, and JavaScript**, there are no heavy build tools or `npm install` steps required.
 
-1. **Clone the repo**:
-   ```bash
-   git clone https://github.com/ritika-jk/AlgoVisualizer.git
-   cd AlgoVisualizer
