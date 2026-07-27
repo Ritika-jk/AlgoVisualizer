@@ -42,6 +42,13 @@ Learning algorithms from text descriptions or static diagrams can often feel dry
 ### 🔤 String Matching
 - Knuth-Morris-Pratt (KMP), Rabin-Karp, Z-Algorithm, Naive Pattern Matching
 
+### 🔐 Cryptographic & Security Algorithms
+- **RSA Encryption**: Asymmetric key generation and modular exponentiation concept
+- **Caesar Cipher**: Classic shift cipher encryption & decryption
+- **XOR Cipher**: Bitwise XOR data stream encryption
+- **Base64 Encoding**: Binary-to-text 6-bit index mapping
+- **Hash Functions**: Modulo-based key hashing & bucket distribution
+
 ---
 
 ## 🚀 How to Run it Locally
