@@ -785,33 +785,6 @@ const ALGORITHMS_DB = [
           initialData: { nodes: ["A", "B", "C"], edges: [["A", "B", 6], ["B", "C", -2], ["A", "C", 5]] },
           trackedVariables: ["distance", "u", "v"]
         }
-      },
-      {
-        id: "flood-fill",
-        name: "Flood Fill (Matrix traversal)",
-        category: "Graphs",
-        difficulty: "Beginner",
-        description: "Replaces target values in a multi-dimensional grid of cells connected to a starting cell with a replacement color. It is like using the 'bucket fill' tool in a drawing app to color an enclosed shape.",
-        timeComplexity: {
-          best: "O(R * C)",
-          average: "O(R * C)",
-          worst: "O(R * C)"
-        },
-        pseudocode: [
-          "def flood_fill(grid, r, c, target_color, new_color):",
-          "  if r < 0 or r >= rows or c < 0 or c >= cols: return",
-          "  if grid[r][c] != target_color: return",
-          "  grid[r][c] = new_color",
-          "  flood_fill(grid, r + 1, c, target_color, new_color)",
-          "  flood_fill(grid, r - 1, c, target_color, new_color)",
-          "  flood_fill(grid, r, c + 1, target_color, new_color)",
-          "  flood_fill(grid, r, c - 1, target_color, new_color)"
-        ],
-        mockVisualState: {
-          type: "grid",
-          initialData: [[1, 1, 0], [1, 1, 2], [0, 2, 2]],
-          trackedVariables: ["r", "c", "target_color"]
-        }
       }
     ]
   },
