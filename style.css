@@ -2554,3 +2554,54 @@ body.dark-theme .sidebar-progress {
   height: 460px;
   min-height: 460px;
 }
+
+/* --- EXAMPLE PRESET SELECTOR STRIP FOR TREES & GRAPHS --- */
+.example-preset-strip {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 1.25rem;
+  background: var(--bg-base);
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.85rem;
+}
+
+.example-preset-strip.hidden {
+  display: none !important;
+}
+
+.preset-label {
+  font-weight: 700;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.preset-btn {
+  padding: 0.35rem 0.85rem;
+  border-radius: 6px;
+  border: 1.5px solid var(--border-color);
+  background: var(--bg-surface);
+  color: var(--text-main);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.preset-btn:hover {
+  background: var(--sage-light);
+  border-color: var(--sage);
+}
+
+.preset-btn.active {
+  background: #1e40af;
+  color: #ffffff;
+  border-color: #0f172a;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+body.dark-theme .preset-btn.active {
+  background: #3b82f6;
+  border-color: #1d4ed8;
+  color: #ffffff;
+}

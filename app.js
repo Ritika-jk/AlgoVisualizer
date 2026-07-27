@@ -9,6 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let animationSpeed = 5; // 1 to 10 scale
   let customSteps = null; // Dynamically generated steps if custom input is entered
   let currentLanguage = "pseudocode";
+  let currentPreset = "easy"; // "easy" vs "hard" for Trees & Graphs
 
   // Declaring persistent tracker states
   let currentUser = localStorage.getItem("algo_current_user") || null;
@@ -329,6 +330,16 @@ The design pulses gently, evoking structural trees and algorithmic graphs in a r
     document.getElementById("complexity-badge-avg").innerText = `Avg: ${dbAlgo.timeComplexity.average}`;
     document.getElementById("complexity-badge-worst").innerText = `Worst: ${dbAlgo.timeComplexity.worst}`;
     document.getElementById("algo-desc-text").innerText = dbAlgo.description;
+
+    // Show/hide Example Preset Selector strip for Trees & Graphs
+    const examplePresetStrip = document.getElementById("example-preset-strip");
+    if (examplePresetStrip) {
+      if (dbAlgo.category === "Trees & Tries" || dbAlgo.category === "Graphs" || (dbAlgo.mockVisualState && ["tree", "graph"].includes(dbAlgo.mockVisualState.type))) {
+        examplePresetStrip.classList.remove("hidden");
+      } else {
+        examplePresetStrip.classList.add("hidden");
+      }
+    }
 
     // Render raw pseudocode
     const translated = translatePseudocodeToLanguage(dbAlgo.pseudocode, currentLanguage);
@@ -720,14 +731,14 @@ The design pulses gently, evoking structural trees and algorithmic graphs in a r
     });
   };
 
-  // Default coordinate layouts for dynamic tree/graph renders
-  const DEFAULT_TREE_LAYOUT = {
+  // Easy and Hard Preset Coordinate Layouts for Trees and Graphs
+  const EASY_TREE_LAYOUT = {
     nodes: [
-      { id: "20", x: 200, y: 70, label: "Root" },
-      { id: "10", x: 100, y: 170, label: "" },
-      { id: "30", x: 300, y: 170, label: "" },
-      { id: "5", x: 50, y: 270, label: "" },
-      { id: "15", x: 150, y: 270, label: "" }
+      { id: "20", x: 200, y: 50, label: "Root" },
+      { id: "10", x: 100, y: 150, label: "" },
+      { id: "30", x: 300, y: 150, label: "" },
+      { id: "5", x: 50, y: 250, label: "" },
+      { id: "15", x: 150, y: 250, label: "" }
     ],
     edges: [
       { from: "20", to: "10" },
@@ -737,19 +748,67 @@ The design pulses gently, evoking structural trees and algorithmic graphs in a r
     ]
   };
 
-  const DEFAULT_GRAPH_LAYOUT = {
+  const HARD_TREE_LAYOUT = {
     nodes: [
-      { id: "A", x: 150, y: 100, label: "" },
-      { id: "B", x: 80, y: 220, label: "" },
-      { id: "C", x: 220, y: 220, label: "" },
-      { id: "D", x: 80, y: 350, label: "" },
-      { id: "E", x: 220, y: 350, label: "" }
+      { id: "50", x: 240, y: 40, label: "Root" },
+      { id: "25", x: 120, y: 120, label: "" },
+      { id: "75", x: 360, y: 120, label: "" },
+      { id: "12", x: 60, y: 200, label: "" },
+      { id: "37", x: 180, y: 200, label: "" },
+      { id: "62", x: 300, y: 200, label: "" },
+      { id: "87", x: 420, y: 200, label: "" },
+      { id: "6", x: 30, y: 280, label: "" },
+      { id: "42", x: 210, y: 280, label: "" }
+    ],
+    edges: [
+      { from: "50", to: "25" },
+      { from: "50", to: "75" },
+      { from: "25", to: "12" },
+      { from: "25", to: "37" },
+      { from: "75", to: "62" },
+      { from: "75", to: "87" },
+      { from: "12", to: "6" },
+      { from: "37", to: "42" }
+    ]
+  };
+
+  const EASY_GRAPH_LAYOUT = {
+    nodes: [
+      { id: "A", x: 180, y: 60, label: "" },
+      { id: "B", x: 80, y: 180, label: "" },
+      { id: "C", x: 280, y: 180, label: "" },
+      { id: "D", x: 180, y: 300, label: "" }
     ],
     edges: [
       { from: "A", to: "B" },
       { from: "A", to: "C" },
       { from: "B", to: "D" },
+      { from: "C", to: "D" }
+    ]
+  };
+
+  const HARD_GRAPH_LAYOUT = {
+    nodes: [
+      { id: "A", x: 220, y: 40, label: "" },
+      { id: "B", x: 100, y: 130, label: "" },
+      { id: "C", x: 340, y: 130, label: "" },
+      { id: "D", x: 40, y: 220, label: "" },
+      { id: "E", x: 220, y: 220, label: "" },
+      { id: "F", x: 400, y: 220, label: "" },
+      { id: "G", x: 130, y: 310, label: "" },
+      { id: "H", x: 310, y: 310, label: "" }
+    ],
+    edges: [
+      { from: "A", to: "B" },
+      { from: "A", to: "C" },
+      { from: "B", to: "D" },
+      { from: "B", to: "E" },
       { from: "C", to: "E" },
+      { from: "C", to: "F" },
+      { from: "D", to: "G" },
+      { from: "E", to: "G" },
+      { from: "E", to: "H" },
+      { from: "F", to: "H" },
       { from: "B", to: "C" }
     ]
   };
@@ -952,7 +1011,9 @@ The design pulses gently, evoking structural trees and algorithmic graphs in a r
         staticAlgo = ALGORITHMS[staticId];
       }
 
-      const layout = staticAlgo ? staticAlgo.initialVisuals : (canvasType === "tree" ? DEFAULT_TREE_LAYOUT : DEFAULT_GRAPH_LAYOUT);
+      const activeTreeLayout = currentPreset === "hard" ? HARD_TREE_LAYOUT : EASY_TREE_LAYOUT;
+      const activeGraphLayout = currentPreset === "hard" ? HARD_GRAPH_LAYOUT : EASY_GRAPH_LAYOUT;
+      const layout = staticAlgo ? staticAlgo.initialVisuals : (canvasType === "tree" ? activeTreeLayout : activeGraphLayout);
       let currentNodes = [...layout.nodes];
       let currentEdges = [...layout.edges];
 
@@ -2310,16 +2371,21 @@ The design pulses gently, evoking structural trees and algorithmic graphs in a r
 
   const runGenericMockSimulation = (algoMeta, data) => {
     let trace = [];
-    const pseudocode = algoMeta.pseudocode;
-    const trackerVars = algoMeta.mockVisualState.trackedVariables || [];
-    const type = algoMeta.mockVisualState.type;
+    const pseudocode = algoMeta.pseudocode || [];
+    const trackerVars = (algoMeta.mockVisualState && algoMeta.mockVisualState.trackedVariables) || [];
+    const type = (algoMeta.mockVisualState && algoMeta.mockVisualState.type) || "array";
 
-    trace.push({
-      line: 0,
-      memory: Object.assign({ status: "Entered" }, typeof data === 'object' ? data : { input: JSON.stringify(data) }),
-      explanation: `Entering the ${algoMeta.name} workspace visualization.`,
-      visuals: getGenericVisuals(type, data, 0)
-    });
+    let initialArr = [];
+    if (type === "array") {
+      if (Array.isArray(data)) initialArr = [...data];
+      else if (data && Array.isArray(data.initialData)) initialArr = [...data.initialData];
+      else initialArr = [34, 12, 58, 9, 23, 77, 45];
+    }
+
+    let initialGraphNodes = currentPreset === "hard" ? ["A", "B", "C", "D", "E", "F", "G", "H"] : ["A", "B", "C", "D"];
+    let initialTreeNodes = currentPreset === "hard" ? ["50", "25", "75", "12", "37", "62", "87", "6", "42"] : ["20", "10", "30", "5", "15"];
+    let initialGrid = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
+    let initialString = typeof data === "string" ? data : (data && data.text ? data.text : "ALGORITHM");
 
     let memSetup = { status: "Setup" };
     trackerVars.forEach(v => {
@@ -2451,6 +2517,28 @@ The design pulses gently, evoking structural trees and algorithmic graphs in a r
 
     langSelect.addEventListener("change", (e) => {
       currentLanguage = e.target.value;
+      loadAlgorithm(currentAlgoId);
+    });
+  }
+
+  // --- EXAMPLE PRESET SWITCHER FOR TREES & GRAPHS ---
+  const btnPresetEasy = document.getElementById("btn-preset-easy");
+  const btnPresetHard = document.getElementById("btn-preset-hard");
+
+  if (btnPresetEasy && btnPresetHard) {
+    btnPresetEasy.addEventListener("click", () => {
+      if (currentPreset === "easy") return;
+      currentPreset = "easy";
+      btnPresetEasy.classList.add("active");
+      btnPresetHard.classList.remove("active");
+      loadAlgorithm(currentAlgoId);
+    });
+
+    btnPresetHard.addEventListener("click", () => {
+      if (currentPreset === "hard") return;
+      currentPreset = "hard";
+      btnPresetHard.classList.add("active");
+      btnPresetEasy.classList.remove("active");
       loadAlgorithm(currentAlgoId);
     });
   }
