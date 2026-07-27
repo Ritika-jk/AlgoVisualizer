@@ -1013,7 +1013,7 @@ The design pulses gently, evoking structural trees and algorithmic graphs in a r
 
       const activeTreeLayout = currentPreset === "hard" ? HARD_TREE_LAYOUT : EASY_TREE_LAYOUT;
       const activeGraphLayout = currentPreset === "hard" ? HARD_GRAPH_LAYOUT : EASY_GRAPH_LAYOUT;
-      const layout = staticAlgo ? staticAlgo.initialVisuals : (canvasType === "tree" ? activeTreeLayout : activeGraphLayout);
+      const layout = canvasType === "tree" ? activeTreeLayout : activeGraphLayout;
       let currentNodes = [...layout.nodes];
       let currentEdges = [...layout.edges];
 
@@ -1315,8 +1315,6 @@ The design pulses gently, evoking structural trees and algorithmic graphs in a r
 
     let targetStaticId = null;
     if (algoId === "bubble-sort") targetStaticId = "bubble_sort";
-    else if (algoId === "dfs") targetStaticId = "dfs_traversal";
-    else if (algoId === "bst-insertion") targetStaticId = "bst_insertion";
     else if (algoId === "fibonacci-memoized" && !customInput) targetStaticId = "fib_dp";
 
     if (targetStaticId && ALGORITHMS[targetStaticId] && !customInput) {
